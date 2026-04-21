@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LifeStats — Max out your undergrad life</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  :root {
+    --purple: #534AB7;
+    --purple-light: #7F77DD;
+    --purple-pale: #EEEDFE;
+    --purple-dark: #3C3489;
+    --teal: #1D9E75;
+    --coral: #D85A30;
+    --blue: #378ADD;
+    --amber: #EF9F27;
+    --pink: #D4537E;
+    --bg: #F7F6FF;
+    --surface: #ffffff;
+    --surface2: #F0EFF9;
+    --border: rgba(83,74,183,0.12);
+    --border-mid: rgba(83,74,183,0.22);
+    --text: #1a1730;
+    --text2: #6B6585;
+    --text3: #A09BB5;
+    --radius: 14px;
+    --radius-sm: 8px;
+    --radius-pill: 99px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  h1, h2, h3, .display { font-family: 'Syne', sans-serif; }
+
+  .app {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 0 16px 80px;
+  }
+
+  /* ── Screens ── */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* ── Onboarding ── */
+  .onboard-wrap {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+  }
+  .onboard-card {
+    background: var(--surface);
+    border-radius: 24px;
+    border: 1px solid var(--border);
+    padding: 2.5rem 2rem;
+    width: 100%;
+    max-width: 460px;
+    animation: fadeUp .4s ease both;
+  }
+  .ob-step { display: none; }
+  .ob-step.active { display: block; }
+  .ob-logo {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--purple);
+    margin-bottom: 2rem;
+    letter-spacing: -.01em;
+  }
+  .ob-logo span { color: var(--text3); font-weight: 400; }
+  .ob-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: .5rem;
+    line-height: 1.2;
+  }
+  .ob-sub { font-size: 14px; color: var(--text2); margin-bottom: 1.75rem; line-height: 1.6; }
+  .ob-input {
+    width: 100%;
+    padding: 11px 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-mid);
+    background: var(--surface2);
+    color: var(--text);
+    font-size: 14px;
+    font-family: 'DM Sans', sans-serif;
+    margin-bottom: 10px;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .ob-input:focus { border-color: var(--purple-light); }
+  .ob-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 1.5rem; }
+  .ob-opt {
+    padding: 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-mid);
+    background: var(--surface);
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text2);
+    text-align: center;
+    transition: all .15s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .ob-opt:hover { border-color: var(--purple-light); color: var(--purple); }
+  .ob-opt.sel { border: 1.5px solid var(--purple); background: var(--purple-pale); color: var(--purple-dark); font-weight: 500; }
+  .ob-progress { display: flex; gap: 6px; margin-bottom: 2rem; }
+  .ob-dot { width: 6px; height: 6px; border-radius: 99px; background: var(--border-mid); transition: background .3s; }
+  .ob-dot.active { background: var(--purple); width: 20px; }
+  .btn-primary {
+    width: 100%;
+    padding: 13px;
+    border-radius: var(--radius-sm);
+    border: none;
+    background: var(--purple);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: 'Syne', sans-serif;
+    letter-spacing: .01em;
+    transition: background .2s, transform .1s;
+  }
+  .btn-primary:hover { background: var(--purple-dark); }
+  .btn-primary:active { transform: scale(.98); }
+  .btn-ghost {
+    width: 100%;
+    padding: 11px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-mid);
+    background: none;
+    color: var(--text2);
+    font-size: 14px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    margin-top: 8px;
+    transition: border-color .2s;
+  }
+  .btn-ghost:hover { border-color: var(--purple-light); color: var(--purple); }
+
+  /* ── Dashboard shell ── */
+  .topnav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 0 0;
+    margin-bottom: 20px;
+  }
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--purple);
+  }
+  .nav-pills {
+    display: flex;
+    gap: 2px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-pill);
+    padding: 3px;
+  }
+  .nav-pill {
+    padding: 6px 14px;
+    border-radius: var(--radius-pill);
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    border: none;
+    background: none;
+    color: var(--text2);
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .nav-pill.active { background: var(--purple); color: #fff; font-weight: 500; }
+
+  /* ── Hero XP card ── */
+  .hero-card {
+    background: var(--purple-dark);
+    border-radius: 20px;
+    padding: 1.5rem 1.75rem;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    animation: fadeUp .35s ease both;
+  }
+  .hero-left { flex: 1; min-width: 0; }
+  .hero-label { font-size: 11px; color: #AFA9EC; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 8px; }
+  .hero-xp { font-family: 'Syne', sans-serif; font-size: 44px; font-weight: 700; color: #fff; line-height: 1; }
+  .hero-level { font-size: 13px; color: #AFA9EC; margin-top: 6px; }
+  .hero-streak {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,255,255,.1);
+    border-radius: var(--radius-pill);
+    padding: 5px 12px;
+    font-size: 12px;
+    color: #FAC775;
+    font-weight: 500;
+    margin-top: 10px;
+  }
+  .ring-wrap { position: relative; flex-shrink: 0; }
+
+  /* ── Stat cards ── */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .scard {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+    cursor: pointer;
+    transition: border-color .15s, transform .1s;
+    animation: fadeUp .3s ease both;
+  }
+  .scard:hover { border-color: var(--purple-light); transform: translateY(-1px); }
+  .scard.active { border: 1.5px solid var(--purple); background: var(--purple-pale); }
+  .scard-icon { font-size: 18px; margin-bottom: 8px; }
+  .scard-name { font-size: 11px; color: var(--text2); margin-bottom: 4px; text-transform: uppercase; letter-spacing: .05em; }
+  .scard-val { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; color: var(--text); }
+  .scard-val span { font-size: 12px; color: var(--text3); font-family: 'DM Sans', sans-serif; font-weight: 400; }
+  .bar-bg { height: 4px; background: var(--surface2); border-radius: 99px; margin-top: 8px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 99px; transition: width .5s ease; }
+
+  /* ── Panels ── */
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 12px;
+    animation: fadeUp .3s ease both;
+  }
+  .panel-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 1rem;
+    letter-spacing: .01em;
+  }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  /* ── Tasks ── */
+  .task-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .task-row:last-child { border-bottom: none; }
+  .chk {
+    width: 20px; height: 20px;
+    border-radius: 6px;
+    border: 1.5px solid var(--border-mid);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; flex-shrink: 0;
+    font-size: 11px;
+    transition: all .15s;
+  }
+  .chk.done { background: var(--purple); border-color: var(--purple); color: #fff; }
+  .task-lbl { font-size: 13px; color: var(--text); flex: 1; }
+  .task-lbl.done { color: var(--text3); text-decoration: line-through; }
+  .task-xp { font-size: 11px; color: var(--purple-light); font-weight: 600; }
+  .add-btn {
+    border: none; background: none;
+    font-size: 13px; color: var(--purple);
+    cursor: pointer; padding: 6px 0;
+    font-family: 'DM Sans', sans-serif;
+    display: flex; align-items: center; gap: 4px;
+    margin-top: 4px;
+  }
+  .irow { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .irow input, .irow select {
+    font-size: 13px; padding: 7px 10px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-mid);
+    background: var(--surface2);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    outline: none;
+  }
+  .irow input:focus, .irow select:focus { border-color: var(--purple-light); }
+  .irow input { flex: 1; min-width: 100px; }
+  .irow .mini-btn {
+    font-size: 13px; padding: 7px 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--purple);
+    color: var(--purple); background: var(--purple-pale);
+    cursor: pointer; font-family: 'DM Sans', sans-serif;
+    transition: background .15s;
+  }
+  .irow .mini-btn:hover { background: #CECBF6; }
+
+  /* ── History ── */
+  .hist-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 7px 0; border-bottom: 1px solid var(--border);
+  }
+  .hist-row:last-child { border-bottom: none; }
+  .hist-date { font-size: 12px; color: var(--text2); width: 56px; flex-shrink: 0; }
+  .hist-bar-bg { flex: 1; height: 6px; background: var(--surface2); border-radius: 99px; overflow: hidden; }
+  .hist-bar-fill { height: 100%; background: var(--purple-light); border-radius: 99px; }
+  .hist-xp { font-size: 12px; color: var(--text2); width: 38px; text-align: right; flex-shrink: 0; font-weight: 500; }
+
+  /* ── Goals ── */
+  .goal-item { padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .goal-item:last-child { border-bottom: none; }
+  .goal-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  .goal-name { font-size: 13px; color: var(--text); font-weight: 500; }
+  .goal-prog { font-size: 12px; color: var(--text2); }
+  .prog-bar-bg { height: 5px; background: var(--surface2); border-radius: 99px; overflow: hidden; }
+  .prog-bar-fill { height: 100%; border-radius: 99px; transition: width .4s; }
+  .goal-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 5px; }
+  .goal-pct { font-size: 11px; color: var(--text3); }
+  .nudge-btn {
+    font-size: 11px; padding: 2px 10px;
+    border: 1px solid var(--border-mid);
+    background: none; color: var(--purple);
+    cursor: pointer; border-radius: 4px;
+    font-family: 'DM Sans', sans-serif;
+    transition: background .15s;
+  }
+  .nudge-btn:hover { background: var(--purple-pale); }
+
+  /* ── Profile ── */
+  .profile-avatar {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: var(--purple-pale);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-size: 26px; font-weight: 700; color: var(--purple-dark);
+    margin: 0 auto 1rem;
+    border: 3px solid var(--purple-pale);
+  }
+  .profile-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px; font-weight: 700;
+    text-align: center; color: var(--text); margin-bottom: 4px;
+  }
+  .profile-meta { font-size: 13px; text-align: center; color: var(--text2); margin-bottom: 1.5rem; }
+  .pstat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 1.5rem; }
+  .pstat {
+    background: var(--surface2); border-radius: var(--radius-sm);
+    padding: 14px; text-align: center;
+  }
+  .pstat-val { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; color: var(--text); }
+  .pstat-lbl { font-size: 11px; color: var(--text2); margin-top: 2px; }
+  .edit-field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
+  .edit-field label { font-size: 12px; color: var(--text2); font-weight: 500; }
+  .edit-field input, .edit-field select {
+    padding: 9px 12px; border-radius: var(--radius-sm);
+    border: 1px solid var(--border-mid);
+    background: var(--surface2); color: var(--text);
+    font-size: 14px; font-family: 'DM Sans', sans-serif;
+    outline: none; transition: border-color .2s;
+  }
+  .edit-field input:focus, .edit-field select:focus { border-color: var(--purple-light); }
+  .save-btn {
+    width: 100%; padding: 11px; border-radius: var(--radius-sm);
+    border: none; background: var(--purple); color: #fff;
+    font-size: 14px; font-weight: 500; cursor: pointer;
+    font-family: 'Syne', sans-serif; margin-top: 4px;
+    transition: background .2s;
+  }
+  .save-btn:hover { background: var(--purple-dark); }
+  .badge-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+  .badge {
+    background: var(--purple-pale); border-radius: var(--radius-pill);
+    padding: 5px 14px; font-size: 12px; color: var(--purple-dark); font-weight: 500;
+  }
+  .badge.locked { background: var(--surface2); color: var(--text3); }
+  .quote-box {
+    background: var(--surface);
+    border-left: 3px solid var(--purple-light);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    padding: 12px 16px; font-size: 13px; color: var(--text2);
+    font-style: italic; margin-bottom: 12px; line-height: 1.6;
+  }
+  .plan-btn {
+    width: 100%; padding: 12px;
+    border-radius: var(--radius);
+    border: 1.5px dashed var(--purple-light);
+    background: var(--purple-pale);
+    color: var(--purple-dark); font-size: 13px;
+    cursor: pointer; font-family: 'DM Sans', sans-serif;
+    transition: background .15s;
+  }
+  .plan-btn:hover { background: #CECBF6; }
+  .chart-wrap { position: relative; }
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: var(--purple-dark); color: #fff;
+    padding: 10px 22px; border-radius: var(--radius-pill);
+    font-size: 13px; font-weight: 500;
+    opacity: 0; transition: opacity .3s;
+    pointer-events: none; white-space: nowrap;
+    font-family: 'DM Sans', sans-serif;
+    z-index: 100;
+  }
+  .toast.show { opacity: 1; }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @media (max-width: 520px) {
+    .two-col { grid-template-columns: 1fr; }
+    .stat-grid { grid-template-columns: repeat(2, 1fr); }
+    .nav-pill { padding: 6px 10px; font-size: 12px; }
+    .hero-xp { font-size: 36px; }
+    .pstat-grid { grid-template-columns: 1fr 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ════════════ ONBOARDING ════════════ -->
+  <div id="screenOnboard" class="screen active">
+    <div class="onboard-wrap">
+      <div class="onboard-card">
+        <div class="ob-logo">LifeStats <span>/ undergrad</span></div>
+
+        <!-- Step 0: Identity -->
+        <div id="ob0" class="ob-step active">
+          <div class="ob-progress"><div class="ob-dot active"></div><div class="ob-dot"></div><div class="ob-dot"></div></div>
+          <div class="ob-title">Hey, let's set up your dashboard</div>
+          <div class="ob-sub">Track every part of undergrad life and level up in real time. Takes 60 seconds.</div>
+          <input class="ob-input" id="obName" placeholder="What should we call you?" autocomplete="name" />
+          <input class="ob-input" id="obUni" placeholder="Your university or college" />
+          <select class="ob-input" id="obYear">
+            <option value="">Year of study</option>
+            <option>1st year</option><option>2nd year</option><option>3rd year</option><option>4th year</option><option>Postgrad</option>
+          </select>
+          <button class="btn-primary" onclick="ob1()">Continue →</button>
+        </div>
+
+        <!-- Step 1: Areas -->
+        <div id="ob1" class="ob-step">
+          <div class="ob-progress"><div class="ob-dot"></div><div class="ob-dot active"></div><div class="ob-dot"></div></div>
+          <div class="ob-title">What do you want to track?</div>
+          <div class="ob-sub">Pick the life areas that matter most. You can always add more later.</div>
+          <div class="ob-grid" id="areaGrid">
+            <div class="ob-opt sel" data-area="academic">📚 Academic</div>
+            <div class="ob-opt sel" data-area="health">💪 Health</div>
+            <div class="ob-opt sel" data-area="social">👥 Social</div>
+            <div class="ob-opt sel" data-area="selfcare">🧠 Self-care</div>
+            <div class="ob-opt sel" data-area="finance">💰 Finance</div>
+            <div class="ob-opt" data-area="creative">🎨 Creative</div>
+          </div>
+          <button class="btn-primary" onclick="ob2()">Continue →</button>
+          <button class="btn-ghost" onclick="showOb(0)">← Back</button>
+        </div>
+
+        <!-- Step 2: Semester goal -->
+        <div id="ob2" class="ob-step">
+          <div class="ob-progress"><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot active"></div></div>
+          <div class="ob-title">What's your semester vibe?</div>
+          <div class="ob-sub">This sets your overall XP target and how we coach you.</div>
+          <div class="ob-grid" id="goalGrid">
+            <div class="ob-opt" data-goal="survive">😮‍💨 Survive &amp; pass</div>
+            <div class="ob-opt sel" data-goal="balance">⚖️ Balance everything</div>
+            <div class="ob-opt" data-goal="excel">🎯 Excel academically</div>
+            <div class="ob-opt" data-goal="max">🚀 Max out all stats</div>
+          </div>
+          <button class="btn-primary" onclick="finishOnboard()">Let's go →</button>
+          <button class="btn-ghost" onclick="showOb(1)">← Back</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════ DASHBOARD ════════════ -->
+  <div id="screenDash" class="screen">
+    <div class="topnav">
+      <div class="logo">LifeStats</div>
+      <div class="nav-pills">
+        <button class="nav-pill active" onclick="showTab('home',this)">Home</button>
+        <button class="nav-pill" onclick="showTab('history',this)">History</button>
+        <button class="nav-pill" onclick="showTab('goals',this)">Goals</button>
+        <button class="nav-pill" onclick="showTab('profile',this)">Profile</button>
+      </div>
+    </div>
+
+    <!-- ── HOME ── -->
+    <div id="tabHome">
+      <div class="hero-card">
+        <div class="hero-left">
+          <div class="hero-label">Overall life XP</div>
+          <div class="hero-xp" id="totalXPEl">0</div>
+          <div class="hero-level" id="levelEl">Level 1 — Freshman</div>
+          <div class="hero-streak" id="streakPill">🔥 0-day streak</div>
+        </div>
+        <canvas id="ringC" width="84" height="84" role="img" aria-label="XP progress ring">XP ring</canvas>
+      </div>
+
+      <div class="stat-grid" id="statGrid"></div>
+
+      <div class="two-col">
+        <div class="panel">
+          <div class="panel-title" id="questTitle">Quests</div>
+          <div id="taskList"></div>
+          <button class="add-btn" onclick="toggleAdd()">＋ Add quest</button>
+          <div id="addRow" style="display:none">
+            <div class="irow">
+              <input type="text" id="newName" placeholder="Quest name..." />
+              <select id="newCat" style="max-width:110px"></select>
+            </div>
+            <div class="irow" style="margin-top:6px">
+              <input type="number" id="newXP" placeholder="XP" style="width:70px;flex:none" min="1" max="100" />
+              <button class="mini-btn" onclick="addTask()">Add</button>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-title">This week</div>
+          <div class="chart-wrap" style="height:130px"><canvas id="weekChart" role="img" aria-label="Weekly XP earned bar chart">Weekly XP</canvas></div>
+        </div>
+      </div>
+
+      <div class="quote-box" id="quoteEl"></div>
+      <button class="plan-btn" onclick="getPlan()">✦ Get my personalised weekly plan →</button>
+    </div>
+
+    <!-- ── HISTORY ── -->
+    <div id="tabHistory" style="display:none">
+      <div class="panel">
+        <div class="panel-title">Daily XP — last 14 days</div>
+        <div id="histList"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">Stat radar — current balance</div>
+        <div class="chart-wrap" style="height:200px"><canvas id="histChart" role="img" aria-label="Radar chart of current stat balance">Stat radar</canvas></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">Streak records</div>
+        <div id="streakList"></div>
+      </div>
+    </div>
+
+    <!-- ── GOALS ── -->
+    <div id="tabGoals" style="display:none">
+      <div class="panel">
+        <div class="panel-title">Semester goals</div>
+        <div id="goalList"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">Add a new goal</div>
+        <div class="irow" style="flex-direction:column;gap:8px">
+          <input type="text" id="gName" placeholder="Goal (e.g. Run 5km, Read 10 books)" style="width:100%" />
+          <div style="display:flex;gap:8px">
+            <select id="gCat" style="flex:1"></select>
+            <input type="number" id="gTarget" placeholder="Target" style="width:80px" min="1" />
+            <input type="text" id="gUnit" placeholder="unit" style="width:65px" />
+          </div>
+          <button class="mini-btn" style="align-self:flex-start;padding:8px 18px" onclick="addGoal()">Add goal</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PROFILE ── -->
+    <div id="tabProfile" style="display:none">
+      <div class="panel">
+        <div class="profile-avatar" id="profileAv">?</div>
+        <div class="profile-name" id="profileName">—</div>
+        <div class="profile-meta" id="profileMeta">—</div>
+        <div class="pstat-grid">
+          <div class="pstat"><div class="pstat-val" id="ps1">0</div><div class="pstat-lbl">Total XP</div></div>
+          <div class="pstat"><div class="pstat-val" id="ps2">0</div><div class="pstat-lbl">Quests done</div></div>
+          <div class="pstat"><div class="pstat-val" id="ps3">0d</div><div class="pstat-lbl">Best streak</div></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">Edit profile</div>
+        <div class="edit-field"><label>Name</label><input id="epName" autocomplete="name" /></div>
+        <div class="edit-field"><label>University</label><input id="epUni" /></div>
+        <div class="edit-field"><label>Year</label>
+          <select id="epYear">
+            <option>1st year</option><option>2nd year</option><option>3rd year</option><option>4th year</option><option>Postgrad</option>
+          </select>
+        </div>
+        <button class="save-btn" onclick="saveProfile()">Save changes</button>
+      </div>
+      <div class="panel">
+        <div class="panel-title">Badges</div>
+        <div class="badge-grid" id="badgeGrid"></div>
+      </div>
+      <button class="btn-ghost" style="margin-top:8px" onclick="resetApp()">Reset &amp; start over</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Config ──────────────────────────────────────────
+const CATS = {
+  academic: { name:'Academic', icon:'📚', color:'#7F77DD', bar:'#534AB7', tasks:['Submit assignment draft','Review lecture notes','Do 2 practice problems','Attend all classes'], xp:25 },
+  health:   { name:'Health',   icon:'💪', color:'#1D9E75', bar:'#0F6E56', tasks:['Drink 2L water','30 min workout','Sleep by midnight','Eat a proper meal'],   xp:20 },
+  social:   { name:'Social',   icon:'👥', color:'#D85A30', bar:'#993C1D', tasks:['Message a friend','Attend club meetup','Call family','Help a classmate'],    xp:15 },
+  selfcare: { name:'Self-care',icon:'🧠', color:'#378ADD', bar:'#185FA5', tasks:['10 min journal','Read 20 pages','No screens after 10pm','Meditate'],        xp:15 },
+  finance:  { name:'Finance',  icon:'💰', color:'#EF9F27', bar:'#854F0B', tasks:['Log today\'s spending','Check bank balance','Pack lunch','Review budget'],   xp:10 },
+  creative: { name:'Creative', icon:'🎨', color:'#D4537E', bar:'#993556', tasks:['Sketch or doodle','Work on side project','Learn something new'],             xp:15 },
+};
+const QUOTES = [
+  '"The secret of getting ahead is getting started." — Mark Twain',
+  '"Small steps every day lead to big changes."',
+  '"Discipline is choosing what you want most over what you want now." — A. Lincoln',
+  '"You don\'t have to be great to start, but you have to start to be great." — Zig Ziglar',
+  '"Progress, not perfection."',
+  '"Your future self is watching. Make them proud."',
+];
+const LEVELS = [
+  [0,'Freshman'],[500,'Rising Scholar'],[1000,'In Grind Mode'],
+  [2000,'Dedicated Scholar'],[3500,'Peak Performer'],[5000,'Life Legend'],
+];
+
+// ── State ───────────────────────────────────────────
+let state = {
+  profile:{ name:'',uni:'',year:'',areas:['academic','health','social','selfcare','finance'],goal:'balance' },
+  tasks:{}, history:[], goals:[], lastLogin:'', currentStreak:0, bestStreak:0,
+  totalXPEarned:0, questsDone:0,
+};
+let activeArea = 'academic';
+let weekChartInst = null, histChartInst = null;
+
+function save(){ try{ localStorage.setItem('lifestats_v2', JSON.stringify(state)); }catch(e){} }
+function load(){ try{ const d=localStorage.getItem('lifestats_v2'); if(d) state=JSON.parse(d); }catch(e){} }
+
+load();
+if(state.profile.name){ initSession(); showDash(); }
+
+// ── Onboarding ──────────────────────────────────────
+function ob1(){
+  const n=document.getElementById('obName').value.trim();
+  if(!n){ showToast('Enter your name to continue'); return; }
+  state.profile.name=n;
+  state.profile.uni=document.getElementById('obUni').value.trim();
+  state.profile.year=document.getElementById('obYear').value;
+  document.querySelectorAll('#areaGrid .ob-opt').forEach(el=>{
+    el.onclick=()=>el.classList.toggle('sel');
+  });
+  showOb(1);
+}
+function ob2(){
+  const sel=[...document.querySelectorAll('#areaGrid .ob-opt.sel')].map(e=>e.dataset.area);
+  if(!sel.length){ showToast('Pick at least one area'); return; }
+  state.profile.areas=sel;
+  document.querySelectorAll('#goalGrid .ob-opt').forEach(el=>{
+    el.onclick=()=>{ document.querySelectorAll('#goalGrid .ob-opt').forEach(x=>x.classList.remove('sel')); el.classList.add('sel'); };
+  });
+  showOb(2);
+}
+function finishOnboard(){
+  const sel=document.querySelector('#goalGrid .ob-opt.sel');
+  state.profile.goal=sel?sel.dataset.goal:'balance';
+  initSession(); save(); showDash();
+}
+function showOb(n){
+  document.querySelectorAll('.ob-step').forEach((s,i)=>s.classList.toggle('active',i===n));
+}
+
+// ── Init ────────────────────────────────────────────
+function initSession(){
+  state.profile.areas.forEach(a=>{
+    if(!state.tasks[a])
+      state.tasks[a]=CATS[a].tasks.map(t=>({label:t,done:false,xp:CATS[a].xp}));
+  });
+  if(!state.goals||!state.goals.length) state.goals=[
+    {name:'Average GPA above 7.5',cat:'academic',target:100,progress:62,unit:'%'},
+    {name:'Gym 3× per week',cat:'health',target:48,progress:21,unit:'sessions'},
+    {name:'Read 10 books this semester',cat:'selfcare',target:10,progress:3,unit:'books'},
+  ];
+  if(!state.history||!state.history.length){
+    const labels=['Mon','Tue','Wed','Thu','Fri','Sat','Sun','Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+    const vals=[80,110,65,130,90,70,155,95,120,80,140,85,60,170];
+    state.history=labels.map((l,i)=>({label:l,xp:vals[i]}));
+  }
+  checkStreak();
+}
+
+function checkStreak(){
+  const today=new Date().toDateString();
+  if(state.lastLogin!==today){
+    const yesterday=new Date(Date.now()-86400000).toDateString();
+    state.currentStreak=(state.lastLogin===yesterday)?(state.currentStreak||0)+1:1;
+    state.bestStreak=Math.max(state.bestStreak||0,state.currentStreak);
+    state.lastLogin=today;
+    save();
+  }
+}
+
+// ── Dashboard ───────────────────────────────────────
+function showDash(){
+  document.getElementById('screenOnboard').classList.remove('active');
+  document.getElementById('screenDash').classList.add('active');
+  const p=state.profile;
+  const initials=p.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)||'?';
+  document.getElementById('profileAv').textContent=initials;
+  document.getElementById('profileName').textContent=p.name;
+  document.getElementById('profileMeta').textContent=(p.uni?p.uni+' · ':'')+p.year;
+  document.getElementById('epName').value=p.name;
+  document.getElementById('epUni').value=p.uni;
+  document.getElementById('epYear').value=p.year||'1st year';
+  const hr=new Date().getHours();
+  populateCatSelects();
+  renderHome();
+}
+
+function populateCatSelects(){
+  ['newCat','gCat'].forEach(id=>{
+    const el=document.getElementById(id); if(!el)return;
+    el.innerHTML='';
+    state.profile.areas.forEach(a=>{
+      const o=document.createElement('option');o.value=a;o.textContent=CATS[a].name;el.appendChild(o);
+    });
+  });
+}
+
+// ── Home tab ─────────────────────────────────────────
+function renderHome(){
+  renderGrid(); renderTasks(); renderWeekChart(); updateXP();
+  document.getElementById('streakPill').textContent='🔥 '+(state.currentStreak||0)+'-day streak';
+  document.getElementById('quoteEl').textContent=QUOTES[Math.floor(Math.random()*QUOTES.length)];
+}
+
+function calcStatVal(a){
+  const tasks=state.tasks[a]||[];
+  const done=tasks.filter(t=>t.done).length;
+  return Math.round(55+(done/Math.max(tasks.length,1))*45);
+}
+
+function renderGrid(){
+  const g=document.getElementById('statGrid'); g.innerHTML='';
+  state.profile.areas.forEach(a=>{
+    const val=calcStatVal(a);
+    const c=CATS[a];
+    const div=document.createElement('div');
+    div.className='scard'+(a===activeArea?' active':'');
+    div.innerHTML=`<div class="scard-icon">${c.icon}</div><div class="scard-name">${c.name}</div><div class="scard-val">${val}<span>/100</span></div><div class="bar-bg"><div class="bar-fill" style="width:${val}%;background:${c.color}"></div></div>`;
+    div.onclick=()=>{ activeArea=a; renderGrid(); renderTasks(); };
+    g.appendChild(div);
+  });
+}
+
+function renderTasks(){
+  document.getElementById('questTitle').textContent=CATS[activeArea].name+' quests';
+  const list=document.getElementById('taskList'); list.innerHTML='';
+  (state.tasks[activeArea]||[]).forEach((t,i)=>{
+    const row=document.createElement('div'); row.className='task-row';
+    row.innerHTML=`<div class="chk ${t.done?'done':''}" onclick="toggleTask(${i})">${t.done?'✓':''}</div><span class="task-lbl ${t.done?'done':''}">${t.label}</span><span class="task-xp">+${t.xp} XP</span>`;
+    list.appendChild(row);
+  });
+}
+
+function toggleTask(i){
+  const t=state.tasks[activeArea][i];
+  t.done=!t.done;
+  if(t.done){ state.totalXPEarned=(state.totalXPEarned||0)+t.xp; state.questsDone=(state.questsDone||0)+1; showToast('+'+t.xp+' XP earned!'); }
+  else { state.totalXPEarned=Math.max(0,(state.totalXPEarned||0)-t.xp); state.questsDone=Math.max(0,(state.questsDone||0)-1); }
+  save(); renderGrid(); renderTasks(); updateXP();
+}
+
+function updateXP(){
+  let sum=0;
+  state.profile.areas.forEach(a=>{ sum+=calcStatVal(a); });
+  const avg=Math.round(sum/Math.max(state.profile.areas.length,1));
+  const xp=avg*10;
+  document.getElementById('totalXPEl').textContent=xp;
+  let lvl=LEVELS[0];
+  LEVELS.forEach(l=>{ if(xp>=l[0]) lvl=l; });
+  const lvlIdx=LEVELS.indexOf(lvl);
+  document.getElementById('levelEl').textContent='Level '+(lvlIdx+1)+' — '+lvl[1];
+  const next=LEVELS[lvlIdx+1];
+  const pct=next?Math.min(Math.round(((xp-lvl[0])/(next[0]-lvl[0]))*100),100):100;
+  drawRing(pct);
+}
+
+function drawRing(pct){
+  const c=document.getElementById('ringC'); if(!c)return;
+  const ctx=c.getContext('2d'); ctx.clearRect(0,0,84,84);
+  const cx=42,cy=42,r=32,lw=7;
+  ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
+  ctx.strokeStyle='rgba(175,169,236,0.3)'; ctx.lineWidth=lw; ctx.stroke();
+  if(pct>0){
+    ctx.beginPath(); ctx.arc(cx,cy,r,-Math.PI/2,-Math.PI/2+Math.PI*2*(pct/100));
+    ctx.strokeStyle='#fff'; ctx.lineWidth=lw; ctx.lineCap='round'; ctx.stroke();
+  }
+  ctx.fillStyle='#fff'; ctx.font='700 13px Syne,sans-serif';
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText(Math.round(pct)+'%',cx,cy);
+}
+
+function renderWeekChart(){
+  if(weekChartInst) weekChartInst.destroy();
+  const last7=state.history.slice(-7);
+  weekChartInst=new Chart(document.getElementById('weekChart'),{
+    type:'bar',
+    data:{labels:last7.map(d=>d.label),datasets:[{label:'XP',data:last7.map(d=>d.xp),backgroundColor:'#7F77DD',borderRadius:4,borderSkipped:false}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:10},color:'#A09BB5'}},y:{display:false,beginAtZero:true}}}
+  });
+}
+
+function toggleAdd(){
+  const el=document.getElementById('addRow');
+  el.style.display=el.style.display==='none'?'block':'none';
+}
+function addTask(){
+  const name=document.getElementById('newName').value.trim();
+  const cat=document.getElementById('newCat').value;
+  const xp=Math.max(1,parseInt(document.getElementById('newXP').value)||15);
+  if(!name){ showToast('Enter a quest name'); return; }
+  if(!state.tasks[cat]) state.tasks[cat]=[];
+  state.tasks[cat].push({label:name,done:false,xp});
+  document.getElementById('newName').value=''; document.getElementById('newXP').value='';
+  document.getElementById('addRow').style.display='none';
+  if(cat!==activeArea){ activeArea=cat; }
+  save(); renderHome(); showToast('Quest added!');
+}
+
+function getPlan(){
+  const areas=state.profile.areas.map(a=>{
+    const v=calcStatVal(a);
+    return CATS[a].name+' ('+v+'/100)';
+  }).join(', ');
+  const prompt='My LifeStats dashboard shows: '+areas+'. My semester goal is to '+state.profile.goal+'. Give me a concrete, specific weekly plan to improve my weakest stat areas as an undergrad student.';
+  if(typeof sendPrompt==='function') sendPrompt(prompt);
+  else { navigator.clipboard.writeText(prompt).then(()=>showToast('Plan prompt copied!')); }
+}
+
+// ── History tab ──────────────────────────────────────
+function renderHistory(){
+  const list=document.getElementById('histList'); if(!list)return;
+  list.innerHTML='';
+  const max=Math.max(...state.history.map(d=>d.xp),1);
+  state.history.slice(-14).forEach(d=>{
+    const pct=Math.round((d.xp/max)*100);
+    const row=document.createElement('div'); row.className='hist-row';
+    row.innerHTML=`<span class="hist-date">${d.label}</span><div class="hist-bar-bg"><div class="hist-bar-fill" style="width:${pct}%"></div></div><span class="hist-xp">${d.xp}</span>`;
+    list.appendChild(row);
+  });
+  renderHistChart();
+  const sl=document.getElementById('streakList'); if(!sl)return;
+  sl.innerHTML='';
+  [
+    {k:'Current streak',v:(state.currentStreak||0)+' days'},
+    {k:'Best streak',   v:(state.bestStreak||0)+' days'},
+    {k:'Total quests',  v:(state.questsDone||0)+' completed'},
+    {k:'Total XP earned',v:state.totalXPEarned||0},
+  ].forEach(s=>{
+    const row=document.createElement('div'); row.className='hist-row';
+    row.innerHTML=`<span style="font-size:13px;color:var(--text);flex:1">${s.k}</span><span style="font-size:13px;font-weight:600;color:var(--purple)">${s.v}</span>`;
+    sl.appendChild(row);
+  });
+}
+
+function renderHistChart(){
+  if(histChartInst) histChartInst.destroy();
+  const areas=state.profile.areas;
+  const vals=areas.map(a=>calcStatVal(a));
+  histChartInst=new Chart(document.getElementById('histChart'),{
+    type:'radar',
+    data:{
+      labels:areas.map(a=>CATS[a].name),
+      datasets:[{
+        label:'Current',data:vals,
+        backgroundColor:'rgba(127,119,221,0.15)',
+        borderColor:'#7F77DD',borderWidth:2,
+        pointBackgroundColor:'#7F77DD',pointRadius:4,
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{r:{min:0,max:100,ticks:{display:false,stepSize:25},grid:{color:'rgba(83,74,183,0.1)'},pointLabels:{font:{size:12},color:'#6B6585'}}}
+    }
+  });
+}
+
+// ── Goals tab ────────────────────────────────────────
+function renderGoals(){
+  const gl=document.getElementById('goalList'); if(!gl)return;
+  gl.innerHTML='';
+  (state.goals||[]).forEach((g,i)=>{
+    const pct=Math.min(Math.round((g.progress/Math.max(g.target,1))*100),100);
+    const col=CATS[g.cat]?CATS[g.cat].color:'#7F77DD';
+    const item=document.createElement('div'); item.className='goal-item';
+    item.innerHTML=`
+      <div class="goal-top"><span class="goal-name">${g.name}</span><span class="goal-prog">${g.progress}/${g.target} ${g.unit}</span></div>
+      <div class="prog-bar-bg"><div class="prog-bar-fill" style="width:${pct}%;background:${col}"></div></div>
+      <div class="goal-foot">
+        <span class="goal-pct">${pct}% complete${pct>=100?' — Done! 🎉':''}</span>
+        <button class="nudge-btn" onclick="nudgeGoal(${i})">+1 ${g.unit}</button>
+      </div>`;
+    gl.appendChild(item);
+  });
+}
+
+function nudgeGoal(i){
+  if(state.goals[i].progress<state.goals[i].target){
+    state.goals[i].progress++;
+    save(); renderGoals();
+    if(state.goals[i].progress>=state.goals[i].target) showToast('Goal complete! 🎉');
+    else showToast('+1 logged!');
+  }
+}
+
+function addGoal(){
+  const name=document.getElementById('gName').value.trim();
+  const cat=document.getElementById('gCat').value;
+  const target=Math.max(1,parseInt(document.getElementById('gTarget').value)||10);
+  const unit=document.getElementById('gUnit').value.trim()||'units';
+  if(!name){ showToast('Enter a goal name'); return; }
+  state.goals.push({name,cat,target,progress:0,unit});
+  document.getElementById('gName').value=''; document.getElementById('gTarget').value=''; document.getElementById('gUnit').value='';
+  save(); renderGoals(); showToast('Goal added!');
+}
+
+// ── Profile tab ──────────────────────────────────────
+function renderProfile(){
+  document.getElementById('ps1').textContent=state.totalXPEarned||0;
+  document.getElementById('ps2').textContent=state.questsDone||0;
+  document.getElementById('ps3').textContent=(state.bestStreak||0)+'d';
+  const badges=[
+    {name:'First quest',   cond:(state.questsDone||0)>=1,icon:'⚡'},
+    {name:'7-day streak',  cond:(state.currentStreak||0)>=7,icon:'🔥'},
+    {name:'Centurion',     cond:(state.totalXPEarned||0)>=100,icon:'💯'},
+    {name:'Goal getter',   cond:(state.goals||[]).some(g=>g.progress>=g.target),icon:'🎯'},
+    {name:'All-rounder',   cond:(state.profile.areas||[]).length>=5,icon:'⭐'},
+    {name:'Life legend',   cond:(state.questsDone||0)>=50,icon:'🏆'},
+  ];
+  const bg=document.getElementById('badgeGrid'); bg.innerHTML='';
+  badges.forEach(b=>{
+    const el=document.createElement('span');
+    el.className='badge'+(b.cond?'':' locked');
+    el.textContent=(b.cond?b.icon+' ':'')+b.name;
+    bg.appendChild(el);
+  });
+}
+
+function saveProfile(){
+  const n=document.getElementById('epName').value.trim();
+  if(!n){ showToast('Name cannot be empty'); return; }
+  state.profile.name=n;
+  state.profile.uni=document.getElementById('epUni').value.trim();
+  state.profile.year=document.getElementById('epYear').value;
+  const initials=n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  document.getElementById('profileAv').textContent=initials;
+  document.getElementById('profileName').textContent=n;
+  document.getElementById('profileMeta').textContent=(state.profile.uni?state.profile.uni+' · ':'')+state.profile.year;
+  save(); showToast('Profile saved!');
+}
+
+function resetApp(){
+  if(!confirm('Reset everything and start over?')) return;
+  try{ localStorage.removeItem('lifestats_v2'); }catch(e){}
+  location.reload();
+}
+
+// ── Nav ──────────────────────────────────────────────
+function showTab(tab,btn){
+  ['home','history','goals','profile'].forEach(t=>{
+    const el=document.getElementById('tab'+t.charAt(0).toUpperCase()+t.slice(1));
+    if(el) el.style.display=t===tab?'block':'none';
+  });
+  document.querySelectorAll('.nav-pill').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  if(tab==='history'){ renderHistory(); }
+  if(tab==='goals')  { renderGoals(); }
+  if(tab==='profile'){ renderProfile(); }
+}
+
+// ── Toast ────────────────────────────────────────────
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+// ── Boot ─────────────────────────────────────────────
+setTimeout(()=>{
+  if(state.profile.name){ updateXP(); renderWeekChart(); }
+},100);
+</script>
+</body>
+</html>
