@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LifeStats — Max out your undergrad life</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root {
+  --p: #4C44B0;
+  --p2: #6C63D8;
+  --p3: #EEEDFE;
+  --p4: #2E2878;
+  --bg: #F5F4FF;
+  --card: #ffffff;
+  --card2: #F0EFF9;
+  --b: rgba(76,68,176,0.13);
+  --b2: rgba(76,68,176,0.25);
+  --t1: #17143A;
+  --t2: #6560A0;
+  --t3: #A8A4CC;
+  --r: 14px;
+  --rs: 8px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;font-size:15px}
+.app{max-width:760px;margin:0 auto;padding:0 16px 80px}
+.hide{display:none!important}
+
+.ob-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem 1rem}
+.ob-card{background:var(--card);border-radius:20px;border:1px solid var(--b);padding:2.5rem 2rem;width:100%;max-width:440px}
+.ob-step{display:none}.ob-step.on{display:block}
+.brand{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--p);margin-bottom:2rem}
+.brand span{color:var(--t3);font-weight:400}
+.dots{display:flex;gap:6px;margin-bottom:1.75rem}
+.dot{width:6px;height:6px;border-radius:99px;background:var(--b2);transition:all .3s}
+.dot.on{background:var(--p);width:22px}
+.ob-h{font-family:'Syne',sans-serif;font-size:24px;font-weight:700;color:var(--t1);margin-bottom:.4rem;line-height:1.2}
+.ob-s{font-size:13px;color:var(--t2);margin-bottom:1.5rem;line-height:1.6}
+.fi{width:100%;padding:10px 14px;border-radius:var(--rs);border:1px solid var(--b2);background:var(--card2);color:var(--t1);font-size:14px;font-family:'DM Sans',sans-serif;margin-bottom:10px;outline:none;transition:border-color .2s}
+.fi:focus{border-color:var(--p2)}
+.og{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1.5rem}
+.oo{padding:11px;border-radius:var(--rs);border:1px solid var(--b2);background:var(--card);cursor:pointer;font-size:13px;color:var(--t2);text-align:center;transition:all .15s;font-family:'DM Sans',sans-serif;user-select:none}
+.oo:hover{border-color:var(--p2);color:var(--p)}
+.oo.on{border:1.5px solid var(--p);background:var(--p3);color:var(--p4);font-weight:500}
+.bp{width:100%;padding:12px;border-radius:var(--rs);border:none;background:var(--p);color:#fff;font-size:15px;font-weight:500;cursor:pointer;font-family:'Syne',sans-serif;transition:background .2s,transform .1s}
+.bp:hover{background:var(--p4)}.bp:active{transform:scale(.98)}
+.bg2{width:100%;padding:10px;border-radius:var(--rs);border:1px solid var(--b2);background:none;color:var(--t2);font-size:14px;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:8px;transition:border-color .2s}
+.bg2:hover{border-color:var(--p2);color:var(--p)}
+
+.topnav{display:flex;align-items:center;justify-content:space-between;padding:18px 0 0;margin-bottom:20px}
+.logo{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--p)}
+.pills{display:flex;gap:2px;background:var(--card);border:1px solid var(--b);border-radius:99px;padding:3px}
+.pill{padding:6px 13px;border-radius:99px;font-size:13px;border:none;background:none;color:var(--t2);cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif}
+.pill.on{background:var(--p);color:#fff;font-weight:500}
+
+.hero{background:var(--p4);border-radius:18px;padding:1.5rem 1.75rem;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.hero-lbl{font-size:10px;color:#AFA9EC;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px}
+.hero-xp{font-family:'Syne',sans-serif;font-size:42px;font-weight:700;color:#fff;line-height:1}
+.hero-lvl{font-size:13px;color:#AFA9EC;margin-top:5px}
+.s-pill{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.1);border-radius:99px;padding:5px 12px;font-size:12px;color:#FAC775;font-weight:500;margin-top:10px}
+
+.sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:10px;margin-bottom:14px}
+.sc{background:var(--card);border:1px solid var(--b);border-radius:var(--r);padding:14px;cursor:pointer;transition:border-color .15s,transform .1s}
+.sc:hover{border-color:var(--p2);transform:translateY(-1px)}
+.sc.on{border:1.5px solid var(--p);background:var(--p3)}
+.sc-ico{font-size:18px;margin-bottom:8px}
+.sc-name{font-size:10px;color:var(--t2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+.sc-val{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--t1)}
+.sc-val span{font-size:12px;color:var(--t3);font-family:'DM Sans',sans-serif;font-weight:400}
+.bbar{height:4px;background:var(--card2);border-radius:99px;margin-top:7px;overflow:hidden}
+.bfill{height:100%;border-radius:99px;transition:width .4s}
+
+.panel{background:var(--card);border:1px solid var(--b);border-radius:var(--r);padding:1.25rem 1.5rem;margin-bottom:12px}
+.ptitle{font-family:'Syne',sans-serif;font-size:14px;font-weight:600;color:var(--t1);margin-bottom:1rem}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+.trow{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--b)}
+.trow:last-child{border-bottom:none}
+.chk{width:20px;height:20px;border-radius:6px;border:1.5px solid var(--b2);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;font-size:11px;transition:all .15s}
+.chk.on{background:var(--p);border-color:var(--p);color:#fff}
+.tlbl{font-size:13px;color:var(--t1);flex:1}
+.tlbl.done{color:var(--t3);text-decoration:line-through}
+.txp{font-size:11px;color:var(--p2);font-weight:600}
+.addbtn{border:none;background:none;font-size:13px;color:var(--p);cursor:pointer;padding:6px 0;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:4px;margin-top:4px}
+.irow{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.irow input,.irow select{font-size:13px;padding:7px 10px;border-radius:var(--rs);border:1px solid var(--b2);background:var(--card2);color:var(--t1);font-family:'DM Sans',sans-serif;outline:none}
+.irow input:focus,.irow select:focus{border-color:var(--p2)}
+.irow input{flex:1;min-width:100px}
+.mbtn{font-size:13px;padding:7px 14px;border-radius:var(--rs);border:1px solid var(--p);color:var(--p);background:var(--p3);cursor:pointer;font-family:'DM Sans',sans-serif}
+.mbtn:hover{background:#CECBF6}
+
+.hrow{display:flex;align-items:center;gap:12px;padding:7px 0;border-bottom:1px solid var(--b)}
+.hrow:last-child{border-bottom:none}
+.hdate{font-size:12px;color:var(--t2);width:54px;flex-shrink:0}
+.hbg{flex:1;height:6px;background:var(--card2);border-radius:99px;overflow:hidden}
+.hfill{height:100%;background:var(--p2);border-radius:99px}
+.hxp{font-size:12px;color:var(--t2);width:36px;text-align:right;flex-shrink:0;font-weight:500}
+.empty{text-align:center;padding:2rem 1rem;color:var(--t3);font-size:13px;line-height:1.6}
+
+.gitem{padding:12px 0;border-bottom:1px solid var(--b)}
+.gitem:last-child{border-bottom:none}
+.gtop{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.gname{font-size:13px;color:var(--t1);font-weight:500}
+.gprog{font-size:12px;color:var(--t2)}
+.gbg{height:5px;background:var(--card2);border-radius:99px;overflow:hidden}
+.gfill{height:100%;border-radius:99px;transition:width .4s}
+.gfoot{display:flex;align-items:center;justify-content:space-between;margin-top:5px}
+.gpct{font-size:11px;color:var(--t3)}
+.nudge{font-size:11px;padding:2px 10px;border:1px solid var(--b2);background:none;color:var(--p);cursor:pointer;border-radius:4px;font-family:'DM Sans',sans-serif}
+.nudge:hover{background:var(--p3)}
+
+.pav{width:68px;height:68px;border-radius:50%;background:var(--p3);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:24px;font-weight:700;color:var(--p4);margin:0 auto 1rem}
+.pname{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;text-align:center;color:var(--t1);margin-bottom:4px}
+.pmeta{font-size:13px;text-align:center;color:var(--t2);margin-bottom:1.5rem}
+.psgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:1.25rem}
+.psc{background:var(--card2);border-radius:var(--rs);padding:14px;text-align:center}
+.psv{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;color:var(--t1)}
+.psl{font-size:11px;color:var(--t2);margin-top:2px}
+.efield{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.efield label{font-size:12px;color:var(--t2);font-weight:500}
+.efield input,.efield select{padding:9px 12px;border-radius:var(--rs);border:1px solid var(--b2);background:var(--card2);color:var(--t1);font-size:14px;font-family:'DM Sans',sans-serif;outline:none}
+.efield input:focus,.efield select:focus{border-color:var(--p2)}
+.sbtn{width:100%;padding:11px;border-radius:var(--rs);border:none;background:var(--p);color:#fff;font-size:14px;font-weight:500;cursor:pointer;font-family:'Syne',sans-serif;margin-top:4px}
+.sbtn:hover{background:var(--p4)}
+.bgrid{display:flex;flex-wrap:wrap;gap:8px}
+.bdg{background:var(--p3);border-radius:99px;padding:5px 14px;font-size:12px;color:var(--p4);font-weight:500}
+.bdg.locked{background:var(--card2);color:var(--t3)}
+.qbox{background:var(--card);border-left:3px solid var(--p2);border-radius:0 var(--rs) var(--rs) 0;padding:12px 16px;font-size:13px;color:var(--t2);font-style:italic;margin-bottom:12px;line-height:1.6}
+.planbtn{width:100%;padding:12px;border-radius:var(--r);border:1.5px dashed var(--p2);background:var(--p3);color:var(--p4);font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif}
+.planbtn:hover{background:#CECBF6}
+.cwrap{position:relative}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--p4);color:#fff;padding:10px 22px;border-radius:99px;font-size:13px;font-weight:500;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;font-family:'DM Sans',sans-serif;z-index:999}
+.toast.on{opacity:1}
+@media(max-width:520px){.two{grid-template-columns:1fr}.sgrid{grid-template-columns:repeat(2,1fr)}.pill{padding:6px 9px;font-size:12px}}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ONBOARD -->
+<div id="sOb">
+  <div class="ob-wrap">
+    <div class="ob-card">
+      <div class="brand">LifeStats <span>/ undergrad</span></div>
+      <div id="ob0" class="ob-step on">
+        <div class="dots"><div class="dot on"></div><div class="dot"></div><div class="dot"></div></div>
+        <div class="ob-h">Hey — let's set up your dashboard</div>
+        <div class="ob-s">Track every part of undergrad life and level up for real. Takes 60 seconds.</div>
+        <input class="fi" id="iName" placeholder="What should we call you?" autocomplete="name" />
+        <input class="fi" id="iUni" placeholder="Your university or college" />
+        <select class="fi" id="iYear">
+          <option value="">Year of study</option>
+          <option>1st year</option><option>2nd year</option><option>3rd year</option><option>4th year</option><option>Postgrad</option>
+        </select>
+        <button class="bp" onclick="goOb1()">Continue →</button>
+      </div>
+      <div id="ob1" class="ob-step">
+        <div class="dots"><div class="dot"></div><div class="dot on"></div><div class="dot"></div></div>
+        <div class="ob-h">What do you want to track?</div>
+        <div class="ob-s">Pick the areas that matter to you. You can change these later.</div>
+        <div class="og" id="areaGrid">
+          <div class="oo on" data-v="academic">📚 Academic</div>
+          <div class="oo on" data-v="health">💪 Health</div>
+          <div class="oo on" data-v="social">👥 Social</div>
+          <div class="oo on" data-v="selfcare">🧠 Self-care</div>
+          <div class="oo on" data-v="finance">💰 Finance</div>
+          <div class="oo" data-v="creative">🎨 Creative</div>
+        </div>
+        <button class="bp" onclick="goOb2()">Continue →</button>
+        <button class="bg2" onclick="showOb(0)">← Back</button>
+      </div>
+      <div id="ob2" class="ob-step">
+        <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot on"></div></div>
+        <div class="ob-h">What's your semester vibe?</div>
+        <div class="ob-s">This shapes your XP target and weekly coaching.</div>
+        <div class="og" id="goalGrid">
+          <div class="oo" data-v="survive">😮‍💨 Survive &amp; pass</div>
+          <div class="oo on" data-v="balance">⚖️ Balance everything</div>
+          <div class="oo" data-v="excel">🎯 Excel academically</div>
+          <div class="oo" data-v="max">🚀 Max out all stats</div>
+        </div>
+        <button class="bp" onclick="finish()">Let's go →</button>
+        <button class="bg2" onclick="showOb(1)">← Back</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="sDash" class="hide">
+  <div class="topnav">
+    <div class="logo">LifeStats</div>
+    <div class="pills">
+      <button class="pill on" onclick="tab('home',this)">Home</button>
+      <button class="pill" onclick="tab('history',this)">History</button>
+      <button class="pill" onclick="tab('goals',this)">Goals</button>
+      <button class="pill" onclick="tab('profile',this)">Profile</button>
+    </div>
+  </div>
+
+  <div id="tHome">
+    <div class="hero">
+      <div>
+        <div class="hero-lbl">Overall life XP</div>
+        <div class="hero-xp" id="xpNum">0</div>
+        <div class="hero-lvl" id="lvlTxt">Level 1 — Freshman</div>
+        <div class="s-pill" id="streakEl">🔥 0-day streak</div>
+      </div>
+      <canvas id="ringC" width="80" height="80" role="img" aria-label="XP progress ring"></canvas>
+    </div>
+    <div class="sgrid" id="sgrid"></div>
+    <div class="two">
+      <div class="panel">
+        <div class="ptitle" id="qtitle">Quests</div>
+        <div id="tlist"></div>
+        <button class="addbtn" onclick="toggleAdd()">＋ Add quest</button>
+        <div id="addRow" class="hide">
+          <div class="irow">
+            <input type="text" id="newN" placeholder="Quest name..." />
+            <select id="newCat" style="max-width:108px"></select>
+          </div>
+          <div class="irow" style="margin-top:6px">
+            <input type="number" id="newXP" placeholder="XP" style="width:68px;flex:none" min="1" max="100" />
+            <button class="mbtn" onclick="addTask()">Add</button>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="ptitle">This week</div>
+        <div class="cwrap" style="height:130px"><canvas id="weekC" role="img" aria-label="Weekly XP bar chart"></canvas></div>
+      </div>
+    </div>
+    <div class="qbox" id="quoteEl"></div>
+    <button class="planbtn" onclick="getPlan()">✦ Get my personalised weekly plan →</button>
+  </div>
+
+  <div id="tHistory" class="hide">
+    <div class="panel">
+      <div class="ptitle">Daily XP — last 14 days</div>
+      <div id="histList"></div>
+    </div>
+    <div class="panel">
+      <div class="ptitle">Stat balance</div>
+      <div class="cwrap" style="height:190px"><canvas id="radarC" role="img" aria-label="Stat radar chart"></canvas></div>
+    </div>
+    <div class="panel">
+      <div class="ptitle">Records</div>
+      <div id="streakRecs"></div>
+    </div>
+  </div>
+
+  <div id="tGoals" class="hide">
+    <div class="panel">
+      <div class="ptitle">Semester goals</div>
+      <div id="goalList"></div>
+    </div>
+    <div class="panel">
+      <div class="ptitle">Add a goal</div>
+      <div class="irow" style="flex-direction:column;gap:8px">
+        <input type="text" id="gN" placeholder="e.g. Run 5km, Read 10 books" style="width:100%" />
+        <div style="display:flex;gap:8px">
+          <select id="gCat" style="flex:1"></select>
+          <input type="number" id="gTarget" placeholder="Target" style="width:78px" min="1" />
+          <input type="text" id="gUnit" placeholder="unit" style="width:62px" />
+        </div>
+        <button class="mbtn" style="align-self:flex-start;padding:8px 18px" onclick="addGoal()">Add goal</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="tProfile" class="hide">
+    <div class="panel">
+      <div class="pav" id="pav">?</div>
+      <div class="pname" id="pname">—</div>
+      <div class="pmeta" id="pmeta">—</div>
+      <div class="psgrid">
+        <div class="psc"><div class="psv" id="ps1">0</div><div class="psl">Total XP</div></div>
+        <div class="psc"><div class="psv" id="ps2">0</div><div class="psl">Quests done</div></div>
+        <div class="psc"><div class="psv" id="ps3">0d</div><div class="psl">Best streak</div></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="ptitle">Edit profile</div>
+      <div class="efield"><label>Name</label><input id="epN" /></div>
+      <div class="efield"><label>University</label><input id="epU" /></div>
+      <div class="efield"><label>Year</label>
+        <select id="epY"><option>1st year</option><option>2nd year</option><option>3rd year</option><option>4th year</option><option>Postgrad</option></select>
+      </div>
+      <button class="sbtn" onclick="saveProfile()">Save changes</button>
+    </div>
+    <div class="panel">
+      <div class="ptitle">Badges</div>
+      <div class="bgrid" id="bdgGrid"></div>
+    </div>
+    <button class="bg2" style="margin-top:8px" onclick="resetApp()">Reset &amp; start over</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const CATS = {
+  academic: { name:'Academic', icon:'📚', color:'#7F77DD', tasks:['Submit assignment draft','Review lecture notes','Do 2 practice problems','Attend all classes'], xp:25 },
+  health:   { name:'Health',   icon:'💪', color:'#1D9E75', tasks:['Drink 2L water','30 min workout','Sleep by midnight','Eat a proper meal'], xp:20 },
+  social:   { name:'Social',   icon:'👥', color:'#D85A30', tasks:['Message a friend','Attend club meetup','Call family','Help a classmate'], xp:15 },
+  selfcare: { name:'Self-care',icon:'🧠', color:'#378ADD', tasks:['10 min journal','Read 20 pages','No screens after 10pm','Meditate'], xp:15 },
+  finance:  { name:'Finance',  icon:'💰', color:'#EF9F27', tasks:["Log today's spending",'Check bank balance','Pack lunch','Review budget'], xp:10 },
+  creative: { name:'Creative', icon:'🎨', color:'#D4537E', tasks:['Sketch or doodle','Work on side project','Learn something new'], xp:15 },
+};
+const QUOTES = [
+  '"The secret of getting ahead is getting started." — Mark Twain',
+  '"Small steps every day lead to big changes."',
+  '"Progress, not perfection."',
+  '"Your future self is watching. Make them proud."',
+  '"Discipline is choosing what you want most over what you want now."',
+];
+const LEVELS = [
+  [0,'Freshman'],[300,'Rising Scholar'],[700,'In Grind Mode'],
+  [1200,'Dedicated Scholar'],[2000,'Peak Performer'],[3000,'Life Legend'],
+];
+const KEY = 'lifestats_v3';
+
+// Completely fresh state — nothing pre-populated
+function newState() {
+  return {
+    profile: { name:'', uni:'', year:'', areas:[], goal:'balance' },
+    tasks: {},
+    history: [],
+    goals: [],
+    totalXP: 0,
+    questsDone: 0,
+    currentStreak: 0,
+    bestStreak: 0,
+    lastLogin: '',
+  };
+}
+
+let S = newState();
+let activeArea = '';
+let weekInst = null, radarInst = null;
+
+// Load saved state — only trust it if it has a profile name
+(function() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.profile && parsed.profile.name) S = parsed;
+    }
+  } catch(e) {}
+})();
+
+if (S.profile.name) { boot(); showDash(); }
+
+// Wire onboarding toggles after DOM ready
+document.querySelectorAll('#areaGrid .oo').forEach(el => el.addEventListener('click', () => el.classList.toggle('on')));
+document.querySelectorAll('#goalGrid .oo').forEach(el => el.addEventListener('click', () => {
+  document.querySelectorAll('#goalGrid .oo').forEach(x => x.classList.remove('on'));
+  el.classList.add('on');
+}));
+
+function showOb(n) { document.querySelectorAll('.ob-step').forEach((s, i) => s.classList.toggle('on', i === n)); }
+
+function goOb1() {
+  const n = document.getElementById('iName').value.trim();
+  if (!n) { toast('Enter your name to continue'); return; }
+  S.profile.name = n;
+  S.profile.uni  = document.getElementById('iUni').value.trim();
+  S.profile.year = document.getElementById('iYear').value;
+  showOb(1);
+}
+
+function goOb2() {
+  const sel = [...document.querySelectorAll('#areaGrid .oo.on')].map(e => e.dataset.v);
+  if (!sel.length) { toast('Pick at least one area'); return; }
+  S.profile.areas = sel;
+  activeArea = sel[0];
+  showOb(2);
+}
+
+function finish() {
+  const sel = document.querySelector('#goalGrid .oo.on');
+  S.profile.goal = sel ? sel.dataset.v : 'balance';
+  // Build task lists — all unchecked, zero XP earned
+  S.profile.areas.forEach(a => {
+    S.tasks[a] = CATS[a].tasks.map(t => ({ label:t, done:false, xp:CATS[a].xp }));
+  });
+  checkStreak();
+  save();
+  boot();
+  showDash();
+}
+
+function checkStreak() {
+  const today = new Date().toDateString();
+  if (S.lastLogin !== today) {
+    const yesterday = new Date(Date.now() - 86400000).toDateString();
+    S.currentStreak = (S.lastLogin === yesterday) ? S.currentStreak + 1 : 1;
+    S.bestStreak = Math.max(S.bestStreak, S.currentStreak);
+    S.lastLogin = today;
+  }
+}
+
+function showDash() {
+  document.getElementById('sOb').style.display = 'none';
+  document.getElementById('sDash').classList.remove('hide');
+}
+
+function boot() {
+  if (!activeArea || !S.profile.areas.includes(activeArea)) activeArea = S.profile.areas[0];
+  // Ensure task lists exist for all areas
+  S.profile.areas.forEach(a => {
+    if (!S.tasks[a]) S.tasks[a] = CATS[a].tasks.map(t => ({ label:t, done:false, xp:CATS[a].xp }));
+  });
+  fillProfileUI();
+  fillSelects();
+  renderHome();
+  document.getElementById('quoteEl').textContent = QUOTES[Math.floor(Math.random() * QUOTES.length)];
+}
+
+function fillProfileUI() {
+  const p = S.profile;
+  const ini = p.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2) || '?';
+  ['pav'].forEach(id => document.getElementById(id).textContent = ini);
+  document.getElementById('pname').textContent = p.name;
+  document.getElementById('pmeta').textContent = (p.uni ? p.uni + ' · ' : '') + p.year;
+  document.getElementById('epN').value = p.name;
+  document.getElementById('epU').value = p.uni;
+  document.getElementById('epY').value = p.year || '1st year';
+}
+
+function fillSelects() {
+  ['newCat','gCat'].forEach(id => {
+    const el = document.getElementById(id); if (!el) return;
+    el.innerHTML = '';
+    S.profile.areas.forEach(a => {
+      const o = document.createElement('option'); o.value = a; o.textContent = CATS[a].name; el.appendChild(o);
+    });
+  });
+}
+
+// Stat score = purely % of tasks done. 0 tasks done = 0. All done = 100.
+function score(a) {
+  const tasks = S.tasks[a] || [];
+  if (!tasks.length) return 0;
+  return Math.round((tasks.filter(t => t.done).length / tasks.length) * 100);
+}
+
+function renderHome() {
+  renderGrid(); renderTasks(); renderWeek(); updateHero();
+  document.getElementById('streakEl').textContent = '🔥 ' + S.currentStreak + '-day streak';
+}
+
+function renderGrid() {
+  const g = document.getElementById('sgrid'); g.innerHTML = '';
+  S.profile.areas.forEach(a => {
+    const v = score(a);
+    const c = CATS[a];
+    const d = document.createElement('div');
+    d.className = 'sc' + (a === activeArea ? ' on' : '');
+    d.innerHTML = `<div class="sc-ico">${c.icon}</div><div class="sc-name">${c.name}</div><div class="sc-val">${v}<span>/100</span></div><div class="bbar"><div class="bfill" style="width:${v}%;background:${c.color}"></div></div>`;
+    d.onclick = () => { activeArea = a; renderGrid(); renderTasks(); };
+    g.appendChild(d);
+  });
+}
+
+function renderTasks() {
+  document.getElementById('qtitle').textContent = CATS[activeArea].name + ' quests';
+  const list = document.getElementById('tlist'); list.innerHTML = '';
+  (S.tasks[activeArea] || []).forEach((t, i) => {
+    const row = document.createElement('div'); row.className = 'trow';
+    row.innerHTML = `<div class="chk${t.done?' on':''}" onclick="check(${i})">${t.done?'✓':''}</div><span class="tlbl${t.done?' done':''}">${t.label}</span><span class="txp">+${t.xp} XP</span>`;
+    list.appendChild(row);
+  });
+}
+
+function check(i) {
+  const t = S.tasks[activeArea][i];
+  t.done = !t.done;
+  if (t.done) {
+    S.totalXP += t.xp;
+    S.questsDone++;
+    addDailyXP(t.xp);
+    toast('+' + t.xp + ' XP earned!');
+  } else {
+    S.totalXP = Math.max(0, S.totalXP - t.xp);
+    S.questsDone = Math.max(0, S.questsDone - 1);
+    addDailyXP(-t.xp);
+  }
+  save(); renderGrid(); renderTasks(); updateHero();
+}
+
+function addDailyXP(delta) {
+  const today = new Date().toDateString();
+  const lbl = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date().getDay()];
+  const last = S.history[S.history.length - 1];
+  if (last && last.date === today) {
+    last.xp = Math.max(0, last.xp + delta);
+  } else if (delta > 0) {
+    S.history.push({ date:today, label:lbl, xp:delta });
+  }
+}
+
+function updateHero() {
+  const xp = S.totalXP;
+  document.getElementById('xpNum').textContent = xp;
+  let lvl = LEVELS[0];
+  LEVELS.forEach(l => { if (xp >= l[0]) lvl = l; });
+  const li = LEVELS.indexOf(lvl);
+  document.getElementById('lvlTxt').textContent = 'Level ' + (li+1) + ' — ' + lvl[1];
+  const next = LEVELS[li+1];
+  const pct = next ? Math.min(Math.round(((xp-lvl[0])/(next[0]-lvl[0]))*100), 100) : 100;
+  drawRing(pct);
+}
+
+function drawRing(pct) {
+  const c = document.getElementById('ringC'); if (!c) return;
+  const ctx = c.getContext('2d'); ctx.clearRect(0,0,80,80);
+  const cx=40,cy=40,r=30,lw=6;
+  ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.strokeStyle='rgba(175,169,236,0.3)'; ctx.lineWidth=lw; ctx.stroke();
+  if (pct > 0) {
+    ctx.beginPath(); ctx.arc(cx,cy,r,-Math.PI/2,-Math.PI/2+Math.PI*2*(pct/100));
+    ctx.strokeStyle='#fff'; ctx.lineWidth=lw; ctx.lineCap='round'; ctx.stroke();
+  }
+  ctx.fillStyle='#fff'; ctx.font='700 12px Syne,sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText(Math.round(pct)+'%', cx, cy);
+}
+
+function renderWeek() {
+  if (weekInst) weekInst.destroy();
+  const labels = [], data = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(Date.now() - i*86400000);
+    const lbl = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()];
+    const ds = d.toDateString();
+    const entry = S.history.find(h => h.date === ds);
+    labels.push(lbl);
+    data.push(entry ? entry.xp : 0);
+  }
+  weekInst = new Chart(document.getElementById('weekC'), {
+    type:'bar',
+    data:{ labels, datasets:[{ label:'XP', data, backgroundColor:'#7F77DD', borderRadius:4, borderSkipped:false }] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{grid:{display:false},ticks:{font:{size:10},color:'#A8A4CC'}},y:{display:false,beginAtZero:true}} }
+  });
+}
+
+function toggleAdd() { document.getElementById('addRow').classList.toggle('hide'); }
+
+function addTask() {
+  const name = document.getElementById('newN').value.trim();
+  const cat  = document.getElementById('newCat').value;
+  const xp   = Math.max(1, parseInt(document.getElementById('newXP').value) || 15);
+  if (!name) { toast('Enter a quest name'); return; }
+  if (!S.tasks[cat]) S.tasks[cat] = [];
+  S.tasks[cat].push({ label:name, done:false, xp });
+  document.getElementById('newN').value = '';
+  document.getElementById('newXP').value = '';
+  document.getElementById('addRow').classList.add('hide');
+  activeArea = cat;
+  save(); renderHome(); toast('Quest added!');
+}
+
+function getPlan() {
+  const areas = S.profile.areas.map(a => CATS[a].name + ' (' + score(a) + '/100)').join(', ');
+  const prompt = 'My LifeStats: ' + areas + '. Semester goal: ' + S.profile.goal + '. Give me a specific weekly plan to improve my weakest areas as an undergrad.';
+  if (typeof sendPrompt === 'function') sendPrompt(prompt);
+  else { try { navigator.clipboard.writeText(prompt); toast('Prompt copied!'); } catch(e) { toast('Copy and paste this into Claude'); } }
+}
+
+function renderHistory() {
+  const list = document.getElementById('histList'); list.innerHTML = '';
+  if (!S.history.length) {
+    list.innerHTML = '<div class="empty">No history yet.<br>Complete some quests to see your daily XP here.</div>';
+  } else {
+    const show = S.history.slice(-14);
+    const max = Math.max(...show.map(d => d.xp), 1);
+    show.forEach(d => {
+      const pct = Math.round((d.xp/max)*100);
+      const row = document.createElement('div'); row.className = 'hrow';
+      row.innerHTML = `<span class="hdate">${d.label}</span><div class="hbg"><div class="hfill" style="width:${pct}%"></div></div><span class="hxp">${d.xp}</span>`;
+      list.appendChild(row);
+    });
+  }
+  renderRadar();
+  const sr = document.getElementById('streakRecs'); sr.innerHTML = '';
+  [{k:'Current streak',v:S.currentStreak+'d'},{k:'Best streak',v:S.bestStreak+'d'},{k:'Quests done',v:S.questsDone},{k:'Total XP',v:S.totalXP}].forEach(s => {
+    const r = document.createElement('div'); r.className = 'hrow';
+    r.innerHTML = `<span style="font-size:13px;color:var(--t1);flex:1">${s.k}</span><span style="font-size:13px;font-weight:600;color:var(--p)">${s.v}</span>`;
+    sr.appendChild(r);
+  });
+}
+
+function renderRadar() {
+  if (radarInst) radarInst.destroy();
+  const areas = S.profile.areas;
+  radarInst = new Chart(document.getElementById('radarC'), {
+    type:'radar',
+    data:{ labels:areas.map(a=>CATS[a].name), datasets:[{ label:'Stats', data:areas.map(a=>score(a)), backgroundColor:'rgba(127,119,221,0.15)', borderColor:'#7F77DD', borderWidth:2, pointBackgroundColor:'#7F77DD', pointRadius:4 }] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{r:{min:0,max:100,ticks:{display:false},grid:{color:'rgba(83,74,183,0.1)'},pointLabels:{font:{size:12},color:'#6560A0'}}} }
+  });
+}
+
+function renderGoals() {
+  const gl = document.getElementById('goalList'); gl.innerHTML = '';
+  if (!S.goals.length) {
+    gl.innerHTML = '<div class="empty">No goals yet.<br>Add your first semester goal below.</div>';
+    return;
+  }
+  S.goals.forEach((g,i) => {
+    const pct = Math.min(Math.round((g.progress/Math.max(g.target,1))*100),100);
+    const col = CATS[g.cat]?CATS[g.cat].color:'#7F77DD';
+    const el = document.createElement('div'); el.className = 'gitem';
+    el.innerHTML = `<div class="gtop"><span class="gname">${g.name}</span><span class="gprog">${g.progress}/${g.target} ${g.unit}</span></div><div class="gbg"><div class="gfill" style="width:${pct}%;background:${col}"></div></div><div class="gfoot"><span class="gpct">${pct}%${pct>=100?' 🎉':''}</span><button class="nudge" onclick="nudge(${i})">+1 ${g.unit}</button></div>`;
+    gl.appendChild(el);
+  });
+}
+
+function nudge(i) {
+  if (S.goals[i].progress < S.goals[i].target) {
+    S.goals[i].progress++;
+    save(); renderGoals();
+    toast(S.goals[i].progress >= S.goals[i].target ? 'Goal complete! 🎉' : '+1 logged!');
+  }
+}
+
+function addGoal() {
+  const name = document.getElementById('gN').value.trim();
+  const cat = document.getElementById('gCat').value;
+  const target = Math.max(1, parseInt(document.getElementById('gTarget').value)||10);
+  const unit = document.getElementById('gUnit').value.trim()||'units';
+  if (!name) { toast('Enter a goal name'); return; }
+  S.goals.push({ name, cat, target, progress:0, unit });
+  document.getElementById('gN').value=''; document.getElementById('gTarget').value=''; document.getElementById('gUnit').value='';
+  save(); renderGoals(); toast('Goal added!');
+}
+
+function renderProfile() {
+  document.getElementById('ps1').textContent = S.totalXP;
+  document.getElementById('ps2').textContent = S.questsDone;
+  document.getElementById('ps3').textContent = S.bestStreak + 'd';
+  const badges = [
+    {name:'First quest',  cond:S.questsDone>=1,   icon:'⚡'},
+    {name:'7-day streak', cond:S.currentStreak>=7, icon:'🔥'},
+    {name:'500 XP',       cond:S.totalXP>=500,     icon:'💯'},
+    {name:'Goal getter',  cond:S.goals.some(g=>g.progress>=g.target), icon:'🎯'},
+    {name:'All-rounder',  cond:S.profile.areas.length>=5, icon:'⭐'},
+    {name:'Life legend',  cond:S.questsDone>=50,   icon:'🏆'},
+  ];
+  const bg = document.getElementById('bdgGrid'); bg.innerHTML = '';
+  badges.forEach(b => {
+    const el = document.createElement('span');
+    el.className = 'bdg' + (b.cond?'':' locked');
+    el.textContent = (b.cond?b.icon+' ':'') + b.name;
+    bg.appendChild(el);
+  });
+}
+
+function saveProfile() {
+  const n = document.getElementById('epN').value.trim();
+  if (!n) { toast('Name cannot be empty'); return; }
+  S.profile.name=n; S.profile.uni=document.getElementById('epU').value.trim(); S.profile.year=document.getElementById('epY').value;
+  fillProfileUI(); save(); toast('Profile saved!');
+}
+
+function resetApp() {
+  if (!confirm('Reset everything and start fresh?')) return;
+  try { localStorage.removeItem(KEY); } catch(e) {}
+  location.reload();
+}
+
+function tab(name, btn) {
+  ['Home','History','Goals','Profile'].forEach(t => {
+    document.getElementById('t'+t).classList.toggle('hide', t.toLowerCase()!==name);
+  });
+  document.querySelectorAll('.pill').forEach(b => b.classList.remove('on'));
+  if (btn) btn.classList.add('on');
+  if (name==='history') renderHistory();
+  if (name==='goals')   renderGoals();
+  if (name==='profile') renderProfile();
+}
+
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e) {} }
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent=msg; t.classList.add('on');
+  setTimeout(()=>t.classList.remove('on'), 2200);
+}
+
+setTimeout(() => { if (S.profile.name) { updateHero(); renderWeek(); } }, 80);
+</script>
+</body>
+</html>
